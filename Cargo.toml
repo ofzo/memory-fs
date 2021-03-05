@@ -6,3 +6,6 @@ edition = '2018'
 description = "memory file system for rust"
 readme = "README.md"
 license = "MIT"
+
+[dependencies]
+lazy_static = "1.4.0"
