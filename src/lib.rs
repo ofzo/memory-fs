@@ -26,7 +26,6 @@ impl MDir {
         
         
         for name in names {
-            println!("new dir {}", name);
             match d._mkdir(name) {
                 Result::Ok(new_dir) => {
                     match new_dir {
@@ -40,7 +39,7 @@ impl MDir {
                     
                 },
                 Err(err) =>{
-                   return Err(format!("err: dir {} is exist", name)); 
+                    return Err(err);
                 }
             }
         }
@@ -50,31 +49,92 @@ impl MDir {
     fn _mkdir(&mut self, name: &'static str) -> Result<&mut Item, String> {
         
         if self.exist(name) {
-            return Err(format!("err: dir {} is exist", name));
+            if let Some(d) = self.sub_dir.get_mut(name) {
+                return Ok(d)
+            }else{
+                return Err(format!("err: dir {} is not exist", name))
+            }
         };
-        
+        println!("new dir {}", name);
         let dir = Item::Dir(MDir {
             sub_dir: HashMap::new(),
         });
         self.sub_dir.insert(String::from(name), dir);
+        
         if let Some(d) = self.sub_dir.get_mut(name) {
             Ok(d)
         }else{
-            Err(format!("err: dir {} is exist", name))
+            Err(format!("err: dir {} is not exist", name))
         }
     }
     
     
-    pub fn touch(&mut self, filename: &'static str)-> Result<(), String> {
+    pub fn touch(&mut self, paths: &'static str)-> Result<(), String> {
+    
+        let names = paths.split("/").collect::<Vec<&str>>();
+        let mut d = self;
+        // let count = names.count();
+        let mut i = 0;
+        
+        for name in names.iter() {
+            
+            if i == names.len() - 1 {
+                match d._touch(name){
+                    Result::Ok(new_dir) => {
+                        match new_dir {
+                            Item::Dir(_)=>{
+                                return Err(format!("err: dir {} is dir", name));      
+                            },
+                            Item::File(_)=>{
+                                
+                            }
+                        }
+                    
+                    },
+                    Err(err) =>{
+                        return Err(err); 
+                    }
+                }
+            }else{
+                match d._mkdir(name) {
+                    Result::Ok(new_dir) => {
+                        match new_dir {
+                            Item::Dir(dir)=>{
+                                d = dir;        
+                            },
+                            Item::File(_)=>{
+                                return Err(format!("err: dir {} is file", name)); 
+                            }
+                        }
+                    },
+                    Err(err) =>{
+                        return Err(err); 
+                    }
+                }
+            }
+            i += 1;
+        }
+        
+        Ok(())
+    }
+    
+    fn _touch(&mut self, filename: &'static str) -> Result<&mut Item, String>{
+        
         if self.exist(filename) {
             return Err(format!("err: dir {} is exist", filename));
         };
+
         println!("new file {}", filename);
         let file = Item::File(MFile{
             content: vec![],
         });
         self.sub_dir.insert(String::from(filename), file);
-        Ok(())
+        
+        if let Some(f) = self.sub_dir.get_mut(filename) {
+            Ok(f)
+        }else{
+            Err(format!("err: dir {} is exist", filename))
+        }
         
     }
     
