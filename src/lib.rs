@@ -19,17 +19,52 @@ pub enum Item {
 }
 
 impl MDir {
-    pub fn mkdir(&mut self, dir_name: &'static str) -> Result<(), String> {
-        if self.exist(dir_name) {
-            return Err(format!("err: dir {} is exist", dir_name));
+    pub fn mkdir(&mut self, paths: &'static str) -> Result<(), String> {
+    
+        let names = paths.split("/");
+        let mut d = self;
+        
+        
+        for name in names {
+            println!("new dir {}", name);
+            match d._mkdir(name) {
+                Result::Ok(new_dir) => {
+                    match new_dir {
+                        Item::Dir(dir)=>{
+                            d = dir;        
+                        },
+                        Item::File(_)=>{
+                            return Err(format!("err: dir {} is file", name)); 
+                        }
+                    }
+                    
+                },
+                Err(err) =>{
+                   return Err(format!("err: dir {} is exist", name)); 
+                }
+            }
+        }
+
+        Ok(())
+    }
+    fn _mkdir(&mut self, name: &'static str) -> Result<&mut Item, String> {
+        
+        if self.exist(name) {
+            return Err(format!("err: dir {} is exist", name));
         };
-        println!("new dir {}", dir_name);
+        
         let dir = Item::Dir(MDir {
             sub_dir: HashMap::new(),
         });
-        self.sub_dir.insert(String::from(dir_name), dir);
-        Ok(())
+        self.sub_dir.insert(String::from(name), dir);
+        if let Some(d) = self.sub_dir.get_mut(name) {
+            Ok(d)
+        }else{
+            Err(format!("err: dir {} is exist", name))
+        }
     }
+    
+    
     pub fn touch(&mut self, filename: &'static str)-> Result<(), String> {
         if self.exist(filename) {
             return Err(format!("err: dir {} is exist", filename));
@@ -42,15 +77,18 @@ impl MDir {
         Ok(())
         
     }
+    
     pub fn exist(&self, dir_name: &'static str) -> bool {
         match self.sub_dir.get(dir_name) {
             Some(_) => true,
             None => false,
         }
     }
+    
     pub fn count(&self) -> usize {
         return self.sub_dir.len();
     }
+    
     pub fn get(&mut self, dir_name: &'static str)-> Option<&mut Item>{
         self.sub_dir.get_mut(dir_name)
     }
@@ -69,7 +107,7 @@ pub fn mkdir(dir_name: &'static str) -> Result<(), String> {
 // tree Dir{ "/":   Dir{ "User": Dir{ "config.js": File{ } }  } }
 #[test]
 fn test() {
-    match mkdir("user") {
+    match mkdir("user/name") {
         Ok(_) => true,
         Err(err) => {
             println!("{}", err);
@@ -94,6 +132,7 @@ fn test() {
         Item::Dir(dir)=>{
             dir.mkdir("name");
             dir.touch("config.js");
+            
             assert!(dir.exist("name"));
             assert!(dir.exist("config.js"));
             assert_eq!(dir.count(), 2);
