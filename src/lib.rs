@@ -67,7 +67,7 @@ pub fn mkdir(dir_name: &'static str) -> Result<(), String> {
     d.mkdir(dir_name)
 }
 // tree Dir{ "/":   Dir{ "User": Dir{ "config.js": File{ } }  } }
-// #[test]
+#[test]
 fn test() {
     match mkdir("user") {
         Ok(_) => true,
@@ -86,6 +86,7 @@ fn test() {
     let mut d = DISK.lock().unwrap();
     assert_eq!(d.count(), 1);
     assert!(d.exist("user"));
+    
     println!("{:#?}", d);
     
     let user = d.get("user").unwrap();
@@ -97,12 +98,10 @@ fn test() {
         Item::File(_)=>{}
         
     };
+    assert!(user.exist("name"));
+     assert!(user.exist("config.js"));
     println!("{:#?}", user);
     println!("{:#?}", d);
     
     
-}
-fn main(){
-    
-    test();
 }
