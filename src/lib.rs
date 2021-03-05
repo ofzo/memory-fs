@@ -94,12 +94,13 @@ fn test() {
         Item::Dir(dir)=>{
             dir.mkdir("name");
             dir.touch("config.js");
+            assert!(dir.exist("name"));
+            assert!(dir.exist("config.js"));
+            assert_eq!(dir.count(), 2);
         },
         Item::File(_)=>{}
         
     };
-    assert!(user.exist("name"));
-     assert!(user.exist("config.js"));
     println!("{:#?}", user);
     println!("{:#?}", d);
     
