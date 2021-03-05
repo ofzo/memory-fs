@@ -1,0 +1,8 @@
+[package]
+name = "memory-fs" # the name of the package
+version = "0.1.0"    # the current version, obeying semver
+authors = ["roadup <roadup.cc@gmail.com>"]
+edition = '2018'
+description = "memory file system for rust"
+readme = "README.md"
+license = "MIT"
